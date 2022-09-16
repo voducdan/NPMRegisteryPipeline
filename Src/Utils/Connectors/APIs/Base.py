@@ -13,8 +13,3 @@ class APIRequest():
             self.session.headers.update(headers)
         response = self.session.get(self.url, params=params)
         return response
-
-    def handle_response(self):
-        text_content = self.response.text_content
-        return json.loads(text_content)
-
