@@ -44,10 +44,11 @@ x-airflow-common:
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.3.3}
-  # build: .
+  # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.3.3}
+  build: .
   environment:
     &airflow-common-env
+    PYTHONPATH: $PYTHONPATH:/opt/airflow/Utils
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@npmregistry-postgres/airflow
     # For backward compatibility, with Airflow <2.3
@@ -60,9 +61,11 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
-    - /home/danvo/Documents/Projects/NpmRegisery/Src/dags:/opt/airflow/dags
-    - /home/danvo/Documents/Projects/NpmRegisery/logs:/opt/airflow/logs
-    - /home/danvo/Documents/Projects/NpmRegisery/plugins:/opt/airflow/plugins
+    - ../Src/dags:/opt/airflow/dags
+    - ../logs:/opt/airflow/logs
+    - ../plugins:/opt/airflow/plugins
+    - ../Src/Utils:/opt/airflow/Utils
+    - ../Src/dag_factory:/opt/airflow/dag_factory
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -102,6 +105,7 @@ services:
     command: webserver
     ports:
       - 8082:8080
+      - 8888:8888
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
@@ -225,8 +229,6 @@ services:
           echo "   https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html#before-you-begin"
           echo
         fi
-        mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:

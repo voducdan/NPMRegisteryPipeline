@@ -1,0 +1,5 @@
+dag_id: 'npm_registry'
+dim_tasks: 
+  - load_to_dim_package
+  - load_to_dim_version
+dim_group_id: load_to_dim_npm_registry

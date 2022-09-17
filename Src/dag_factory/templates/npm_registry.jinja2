@@ -1,0 +1,42 @@
+import sys
+sys.path.append('..')
+
+from datetime import datetime
+
+from airflow import DAG
+from airflow.decorators import task, task_group
+
+from Utils.Connectors.Databases import database_loader
+
+DEFAULT_START_DATE = datetime(2022,9,17)
+DEFAULT_END_DATE = None
+DEFAULT_SCHEDULE_INTERVAL = '@daily'
+
+with DAG(
+    '{{dag_id}}',
+    start_date={% if start_date %}{{ start_date }}{% else %}DEFAULT_START_DATE {% endif %},
+    end_date={% if end_date %}{{ end_date }}{% else %}DEFAULT_END_DATE {% endif %},
+    schedule_interval={% if schedule_interval %}{{ schedule_interval }}{% else %}DEFAULT_SCHEDULE_INTERVAL {% endif %},
+    catchup={{ catchup or False}}
+) as dag:
+
+    @task 
+    def load_api_to_lake():
+        return 1
+
+    @task 
+    def prepare_data_before_loading(raw_df):
+        return 1
+
+    {% for dim in  dim_tasks%}
+    @task
+    def {{  dim }}(pre_df):
+        return database_loader.{{ dim }}(pre_df)
+    {% endfor %}
+
+    @task_group
+    def dim_task_group(pre_df):
+        tasks = [{% for dim in  dim_tasks%} {{ dim }}(pre_df) {% if not loop.last %},{% endif %}{% endfor %}]
+        return tasks
+    
+    dim_task_group(prepare_data_before_loading(load_api_to_lake()))
