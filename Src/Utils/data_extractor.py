@@ -1,7 +1,7 @@
 import json
 import pandas as pd
 
-from date import DateUtils
+from .date import DateUtils
 
 class DataExtractor():
     def __init__(self, date_output_format=DateUtils.DateFormat.YMD):
@@ -21,9 +21,8 @@ class DataExtractor():
             df.columns = columns
         return df
 
-    def dict_to_json_file(self, response, output_uri, compression=None):
+    def dict_to_json_file(self, content_json, output_uri, compression=None):
         try:
-            content_json = self.response_json_to_dict(response)
             if not output_uri:
                 raise AttributeError('output uri can not be null')
             curr_time = DateUtils.get_current_time_ms()

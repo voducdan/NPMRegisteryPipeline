@@ -1,9 +1,10 @@
 import logging
 
-from APIs.Base import APIRequest
+from Utils.Connectors.APIs.Base import APIRequest
 
 from Utils.paging import get_skip_items_by_offset, has_next , get_page_by_offset
 from Utils.data_extractor import DataExtractor
+from Utils.date import DateUtils
 class NpmRegistry(APIRequest):
     def __init__(self, rows_per_page = 100):
         super.__init__()
@@ -26,7 +27,8 @@ class NpmRegistry(APIRequest):
                     # Logging
                     return 
                 data_dict = DataExtractor.response_json_to_dict(self.response)
+                output_uri = DateUtils.today_to_url()
+                DataExtractor.dict_to_json_file(content_json=data_dict, output_uri=output_uri)
                 has_next_page = has_next(page, data_dict['total_rows'], rows_per_page)
-                
             except ValueError as e:
                 logging.error(e)

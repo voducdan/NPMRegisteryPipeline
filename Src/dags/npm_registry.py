@@ -3,3 +3,5 @@ sys.path.append("..")
 
 from Utils.Connectors.APIs import NpmRegistry
 from Utils.date import DateUtils
+
+from airflow import DAG
