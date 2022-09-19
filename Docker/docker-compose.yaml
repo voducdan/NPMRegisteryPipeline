@@ -48,7 +48,7 @@ x-airflow-common:
   build: .
   environment:
     &airflow-common-env
-    PYTHONPATH: $PYTHONPATH:/opt/airflow/Utils
+    PYTHONPATH: /opt/airflow/Utils
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@npmregistry-postgres/airflow
     # For backward compatibility, with Airflow <2.3
@@ -61,9 +61,10 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
-    - ../Src/dags:/opt/airflow/dags
     - ../logs:/opt/airflow/logs
     - ../plugins:/opt/airflow/plugins
+    - ../Lake:/opt/airflow/Lake
+    - ../Src/dags:/opt/airflow/dags
     - ../Src/Utils:/opt/airflow/Utils
     - ../Src/dag_factory:/opt/airflow/dag_factory
   user: "${AIRFLOW_UID:-50000}:0"

@@ -4,7 +4,7 @@ def get_page_by_offset(offset, rows_per_page):
     return (offset / rows_per_page) + 1
 
 def get_skip_items_by_offset(page, rows_per_page):
-    skip = page * rows_per_page; 
+    skip = int(page * rows_per_page); 
     return skip
 
 def has_prev(page):

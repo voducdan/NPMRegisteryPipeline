@@ -26,11 +26,11 @@ class DateUtils():
         try:
             todays_date = date.today()
             curr_path = Path.cwd()
-            root_path = curr_path.parent.parent
             date_path = str(todays_date).replace('-', '/')
-            lake_path = path.join(root_path, 'Lake', folder_name, date_path)
+            lake_path = path.join(curr_path, 'Lake', folder_name, date_path)
             return lake_path
         except TypeError as e:
+            pass
             logger.error('folder name must be a string')
             logger.error(e, exc_info=True)
         except:

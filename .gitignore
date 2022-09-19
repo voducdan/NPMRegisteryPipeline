@@ -1,4 +1,5 @@
 logs/
+Lake/
 Docker/dags/
 Docker/logs/
 Docker/Plugins
