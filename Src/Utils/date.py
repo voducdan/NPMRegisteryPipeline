@@ -31,6 +31,7 @@ class DateUtils():
             lake_path = path.join(root_path, 'Lake', folder_name, date_path)
             return lake_path
         except TypeError as e:
+            pass
             logger.error('folder name must be a string')
             logger.error(e, exc_info=True)
         except:

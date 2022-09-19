@@ -15,7 +15,7 @@ class DataExtractor():
         except Exception as e:
             raise ValueError(e)
 
-    def dict_to_dataframe(obj, columns=None):
+    def dict_to_dataframe(obj,columns=None):
         df = pd.DataFrame([obj])
         if columns:
             df.columns = columns
