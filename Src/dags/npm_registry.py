@@ -45,8 +45,13 @@ with DAG(
         return tasks
 
     @task_group
+    def extract_task_group(raw_df):
+        tasks = [ extract_from_lake(raw_df) ]
+        return tasks
+
+    @task_group
     def dim_task_group(pre_df):
         tasks = [ load_to_dim_package(pre_df) , load_to_dim_version(pre_df) ]
-        return tasks
+        return return tasks
     
     dim_task_group(extract_task_group(load_api_to_lake()))

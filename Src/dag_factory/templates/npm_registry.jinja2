@@ -41,6 +41,11 @@ with DAG(
         return tasks
 
     @task_group
+    def extract_task_group(raw_df):
+        tasks = [{% for t in  extract_tasks%} {{ t }}(raw_df) {% if not loop.last %},{% endif %}{% endfor %}]
+        return tasks
+
+    @task_group
     def dim_task_group(pre_df):
         tasks = [{% for dim in  dim_tasks%} {{ dim }}(pre_df) {% if not loop.last %},{% endif %}{% endfor %}]
         return tasks

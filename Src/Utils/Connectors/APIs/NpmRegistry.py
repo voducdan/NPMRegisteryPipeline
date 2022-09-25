@@ -44,6 +44,7 @@ class NpmRegistry(APIRequest):
                 data_ext.dict_to_json_file(content_json=data_to_load, output_uri=output_uri)
                 has_next_page = has_next(page, data_dict['total_rows'], rows_per_page)
                 offset = data_dict['offset']
+                offset = data_dict['offset']
             except ValueError as e:
                 logger.error(e)
                 return 
