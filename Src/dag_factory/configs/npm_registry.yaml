@@ -1,8 +1,13 @@
 dag_id: 'npm_registry'
 extract_tasks:
-  - extract_from_lake
+  tasks:
+    - get_all_docs
+    - get_doc_detail
+    - extract_from_lake
+  task_dependency: get_all_docs>>get_doc_detail>>extract_from_lake
 extract_group_id: extract_data_before_loading
-dim_tasks: 
-  - load_to_dim_package
-  - load_to_dim_version
+dim_tasks:
+  tasks:
+    - load_to_dim_package
+    - load_to_dim_version
 dim_group_id: load_to_dim_npm_registry  

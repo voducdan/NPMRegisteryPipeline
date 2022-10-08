@@ -4,7 +4,6 @@ from airflow import DAG
 from airflow.decorators import task, task_group
 
 from Connectors.Databases import database_loader
-from Connectors.APIs.NpmRegistry import NpmRegistry 
 
 DEFAULT_START_DATE = datetime(2022,9,17)
 DEFAULT_END_DATE = None
@@ -18,36 +17,38 @@ with DAG(
     catchup={{ catchup or False}}
 ) as dag:
 
-    @task 
-    def load_api_to_lake():
-        npm_registry = NpmRegistry()
-        npm_registry.make_api_request_and_save_to_lake(sub_url='_all_docs',field='rows')
-
-    {% for t in  extract_tasks%}
+    {% for t in  extract_tasks.tasks %}
     @task
-    def {{ t }}(raw_df):
-        return database_loader.{{ t }}(raw_df)
+    def {{ t }}():
+        return database_loader.{{ t }}()
     {% endfor %}
 
-    {% for dim in  dim_tasks%}
+    {% for dim in  dim_tasks.tasks %}
     @task
     def {{  dim }}(pre_df):
         return database_loader.{{ dim }}(pre_df)
     {% endfor %}
 
     @task_group
-    def extract_task_group(raw_df):
-        tasks = [{% for t in  extract_tasks%} {{ t }}(raw_df) {% if not loop.last %},{% endif %}{% endfor %}]
-        return tasks
-
-    @task_group
-    def extract_task_group(raw_df):
-        tasks = [{% for t in  extract_tasks%} {{ t }}(raw_df) {% if not loop.last %},{% endif %}{% endfor %}]
-        return tasks
+    def extract_task_group():
+        {% if not extract_tasks.task_dependency -%}
+            return [{% for t in  extract_tasks.tasks %} {{ t }}() {% if not loop.last %},{% endif %}{% endfor %}]
+        {% else -%}
+            {% set splited_tasks = extract_tasks.task_dependency.split('>>') -%}
+            return {% for t in  splited_tasks -%}
+                {{ t }}() {% if not loop.last %} >> {% endif %}
+            {%- endfor %}
+        {%- endif %}
 
     @task_group
     def dim_task_group(pre_df):
-        tasks = [{% for dim in  dim_tasks%} {{ dim }}(pre_df) {% if not loop.last %},{% endif %}{% endfor %}]
-        return tasks
+        {% if not dim_tasks.task_dependency -%}
+            return [{% for dim in  dim_tasks.tasks %} {{ dim }}(pre_df) {% if not loop.last %},{% endif %}{% endfor %}]
+        {% else %}
+            {%- set splited_tasks = dim_tasks.task_dependency.split('>>') %}
+            return {% for t in  splited_tasks -%}
+                {{ t }}(pre_df) {% if not loop.last %} >> {% endif %}
+            {%- endfor %}
+        {%- endif %}
     
-    dim_task_group(extract_task_group(load_api_to_lake()))
+    dim_task_group(extract_task_group())

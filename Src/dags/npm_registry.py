@@ -4,7 +4,6 @@ from airflow import DAG
 from airflow.decorators import task, task_group
 
 from Connectors.Databases import database_loader
-from Connectors.APIs.NpmRegistry import NpmRegistry 
 
 DEFAULT_START_DATE = datetime(2022,9,17)
 DEFAULT_END_DATE = None
@@ -18,15 +17,18 @@ with DAG(
     catchup=False
 ) as dag:
 
-    @task 
-    def load_api_to_lake():
-        npm_registry = NpmRegistry()
-        npm_registry.make_api_request_and_save_to_lake(sub_url='_all_docs',field='rows')
-
     
     @task
-    def extract_from_lake(raw_df):
-        return database_loader.extract_from_lake(raw_df)
+    def get_all_docs():
+        return database_loader.get_all_docs()
+    
+    @task
+    def get_doc_detail():
+        return database_loader.get_doc_detail()
+    
+    @task
+    def extract_from_lake():
+        return database_loader.extract_from_lake()
     
 
     
@@ -40,18 +42,12 @@ with DAG(
     
 
     @task_group
-    def extract_task_group(raw_df):
-        tasks = [ extract_from_lake(raw_df) ]
-        return tasks
-
-    @task_group
-    def extract_task_group(raw_df):
-        tasks = [ extract_from_lake(raw_df) ]
-        return tasks
+    def extract_task_group():
+        return get_all_docs()  >> get_doc_detail()  >> extract_from_lake() 
 
     @task_group
     def dim_task_group(pre_df):
-        tasks = [ load_to_dim_package(pre_df) , load_to_dim_version(pre_df) ]
-        return return tasks
+        return [ load_to_dim_package(pre_df) , load_to_dim_version(pre_df) ]
+        
     
-    dim_task_group(extract_task_group(load_api_to_lake()))
+    dim_task_group(extract_task_group())
